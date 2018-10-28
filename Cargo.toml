@@ -12,3 +12,6 @@ failure_derive = "0.1"
 
 [dev-dependencies]
 proptest = "0.8"
+
+# Mocking
+mocktopus = "0.5.0"
