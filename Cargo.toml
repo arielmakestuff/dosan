@@ -1,0 +1,14 @@
+[package]
+name = "dosan"
+version = "0.1.0"
+authors = ["Ariel De Ocampo <arielmakestuff@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+
+# Error deps
+failure = "0.1"
+failure_derive = "0.1"
+
+[dev-dependencies]
+proptest = "0.8"
