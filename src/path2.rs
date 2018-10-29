@@ -1,4 +1,4 @@
-// src/path.rs
+// src/path2.rs
 // Copyright (C) 2018 authors and contributors (see AUTHORS file)
 //
 // This file is released under the MIT License.
@@ -26,14 +26,13 @@ use mocktopus::macros::*;
 //
 // This processes a parent directory component
 fn normalize_parentdir_comp(
-    path: &Path,
     ret: &mut PathBuf,
     last_comp: &Option<Component>,
 ) -> io::Result<()>
 {
     if ret.as_os_str().is_empty()
     {
-        let curdir = path.current_dir()?;
+        let curdir = env::current_dir()?;
         match curdir.parent()
         {
             Some(p) => ret.push(p),
@@ -61,6 +60,15 @@ fn normalize_parentdir_comp(
 #[cfg_attr(test, mockable)]
 pub trait PathExt: AsRef<Path>
 {
+    fn is_current_dir(&self) -> bool
+    {
+        match self.current_dir()
+        {
+            Err(_) => false,
+            Ok(path) => self.as_ref() == path.as_path(),
+        }
+    }
+
     fn current_dir(&self) -> io::Result<PathBuf>
     {
         env::current_dir()
@@ -83,14 +91,14 @@ pub trait PathExt: AsRef<Path>
             {
                 Component::ParentDir =>
                 {
-                    normalize_parentdir_comp(curpath, &mut ret, &last_comp)?;
+                    normalize_parentdir_comp(&mut ret, &last_comp)?;
                 }
 
                 Component::CurDir =>
                 {
                     if ret.as_os_str().is_empty()
                     {
-                        ret = self.current_dir()?;
+                        ret = env::current_dir()?;
                     }
                 }
 
@@ -104,6 +112,26 @@ pub trait PathExt: AsRef<Path>
         }
 
         Ok(ret)
+    }
+
+    fn absolute(&self) -> io::Result<PathBuf>
+    {
+        let curpath = self.normalize()?;
+        for comp in curpath.components()
+        {
+            match comp
+            {
+                Component::Prefix(_) | Component::RootDir => return Ok(curpath),
+
+                _ =>
+                {
+                    break;
+                }
+            }
+        }
+
+        let newpath = env::current_dir()?;
+        Ok(newpath.join(curpath))
     }
 }
 
